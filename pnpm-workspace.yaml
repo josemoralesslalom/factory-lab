@@ -1,2 +1,14 @@
+packages:
+  - "apps/*"
+
 allowBuilds:
+  "@parcel/watcher": false
+  esbuild: false
   lefthook: false
+  lmdb: false
+  msgpackr-extract: false
+
+peerDependencyRules:
+  allowedVersions:
+    "@napi-rs/wasm-runtime>@emnapi/core": "2.0.0-alpha.6"
+    "@napi-rs/wasm-runtime>@emnapi/runtime": "2.0.0-alpha.6"
