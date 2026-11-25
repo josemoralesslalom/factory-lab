@@ -1,0 +1,6 @@
+node_modules/
+coverage/
+dist/
+.claude/settings.local.json
+.claude/escalations.log
+.claude/hooks.log
