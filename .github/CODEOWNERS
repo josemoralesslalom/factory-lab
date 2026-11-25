@@ -13,3 +13,8 @@
 /.gitattributes @jm167
 /.gitignore @jm167
 /foundation.md @jm167
+/apps/_/angular.json jm167
+/apps/_/package.json jm167
+/apps/_/tsconfig_.json jm167
+/apps/*/vitest-base.config.mts jm167
+/tsconfig.base.json jm167

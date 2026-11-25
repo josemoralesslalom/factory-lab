@@ -11,7 +11,9 @@
       "PowerShell(pnpm typecheck)",
       "PowerShell(pnpm lint)",
       "PowerShell(pnpm test)",
-      "PowerShell(pnpm format)"
+      "PowerShell(pnpm format)",
+      "Bash(pnpm build)",
+      "PowerShell(pnpm build)"
     ],
     "deny": [
       "Edit(/.github/**)",
@@ -31,7 +33,12 @@
       "Edit(/foundation.md)",
       "Bash(git push *)",
       "Bash(* --no-verify)",
-      "Bash(* --no-verify *)"
+      "Bash(* --no-verify *)",
+      "Edit(/apps/*/angular.json)",
+      "Edit(/apps/*/package.json)",
+      "Edit(/apps/*/tsconfig*.json)",
+      "Edit(/apps/*/vitest-base.config.mts)",
+      "Edit(/tsconfig.base.json)"
     ]
   },
   "hooks": {

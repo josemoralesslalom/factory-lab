@@ -4,3 +4,5 @@ dist/
 .claude/settings.local.json
 .claude/escalations.log
 .claude/hooks.log
+out-tsc/
+.angular/
