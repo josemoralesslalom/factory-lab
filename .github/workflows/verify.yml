@@ -13,3 +13,4 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - run: bash scripts/test-gates.sh
