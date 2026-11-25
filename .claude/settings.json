@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm verify)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm test)",
+      "Bash(pnpm format)",
+      "Bash(pnpm exec prettier *)",
+      "PowerShell(pnpm verify)",
+      "PowerShell(pnpm typecheck)",
+      "PowerShell(pnpm lint)",
+      "PowerShell(pnpm test)",
+      "PowerShell(pnpm format)"
+    ],
+    "deny": [
+      "Edit(/.github/**)",
+      "Edit(/.claude/**)",
+      "Edit(/.vscode/**)",
+      "Edit(/scripts/**)",
+      "Edit(/eslint.config.mjs)",
+      "Edit(/vitest.config.ts)",
+      "Edit(/tsconfig.json)",
+      "Edit(/lefthook.yml)",
+      "Edit(/package.json)",
+      "Edit(/pnpm-workspace.yaml)",
+      "Edit(/.prettierrc.json)",
+      "Edit(/.prettierignore)",
+      "Edit(/.gitattributes)",
+      "Edit(/.gitignore)",
+      "Edit(/foundation.md)",
+      "Bash(git push *)",
+      "Bash(* --no-verify)",
+      "Bash(* --no-verify *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/scripts/format-edited.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/scripts/agent-gate.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
