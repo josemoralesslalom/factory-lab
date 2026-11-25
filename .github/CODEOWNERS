@@ -1,0 +1,15 @@
+/.github/ @jm167
+/.claude/ @jm167
+/.vscode/ @jm167
+/scripts/ @jm167
+/eslint.config.mjs @jm167
+/vitest.config.ts @jm167
+/tsconfig.json @jm167
+/lefthook.yml @jm167
+/package.json @jm167
+/pnpm-workspace.yaml @jm167
+/.prettierrc.json @jm167
+/.prettierignore @jm167
+/.gitattributes @jm167
+/.gitignore @jm167
+/foundation.md @jm167
