@@ -61,6 +61,7 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    linterOptions: { noInlineConfig: true },
     rules: {
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "no-restricted-imports": [
