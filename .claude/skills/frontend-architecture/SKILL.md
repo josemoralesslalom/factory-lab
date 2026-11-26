@@ -7,6 +7,25 @@ description: Usar antes de crear, mover, renombrar o modificar cualquier archivo
 
 La app vive en `apps/web` (Angular 22, standalone, sin zone.js). Todo el código de la app está en `apps/web/src/app/`.
 
+## Crear piezas: siempre con `pnpm gen`
+
+Las features, pages, componentes, servicios y modelos nuevos se crean con el generador, nunca a mano. El generador crea los archivos con el patrón del proyecto, sus tests y su ruta. Después editas el contenido.
+
+```bash
+pnpm gen feature <feature>                                          # <feature>.routes.ts + entrada en app.routes.ts
+pnpm gen model <feature> <modelo>                                   # models/<modelo>.ts
+pnpm gen service <feature> <servicio> --model <modelo>              # services/<servicio>.ts + spec, con getAll()
+pnpm gen page <feature> <page> --service <servicio> [--path <ruta>] # pages/<page>/ (.ts, .html, .spec.ts) + ruta
+pnpm gen component <feature> <componente>                           # components/<componente>/ (.ts, .html, .spec.ts)
+```
+
+- Orden: feature, model, service, page, component. Si falta una pieza previa, el error dice el comando exacto.
+- Nombres en kebab-case. El generador deriva clases, selectores y constantes.
+- `--path` vale por defecto el nombre de la page. Para la ruta raíz de la feature usa `--path ""`.
+- Nunca sobrescribe. Si responde "Ya existe", edita el archivo existente.
+- No borres `// @gen:routes` de los archivos de rutas: ahí inserta las rutas nuevas.
+- Lo que el generador no cubre (una función pura, un guard) se crea a mano siguiendo esta skill y se menciona en el resumen final.
+
 ## Estructura
 
 ```
@@ -79,7 +98,13 @@ export const ORDERS_ROUTES: Routes = [
 ];
 ```
 
-Toda page nueva se registra en las rutas de su feature.
+// @gen:routes
+
+`pnpm gen page` registra la ruta. No la escribas a mano.
+
+## Piezas nuevas
+
+Los archivos nuevos en `apps/web/src/app/features/` se crean con `pnpm gen` (skill `frontend-architecture`). Después del generador se edita el contenido; esos archivos no se crean a mano.
 
 ## Estado y datos: RxJS
 
