@@ -2,6 +2,7 @@ import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { fileURLToPath } from "node:url";
 import angular from "angular-eslint";
 import tseslint from "typescript-eslint";
+import boundaries from "eslint-plugin-boundaries";
 
 const gitignore = fileURLToPath(new URL(".gitignore", import.meta.url));
 
@@ -86,6 +87,62 @@ export default defineConfig([
           selector: "CallExpression[callee.property.name='subscribe']",
           message:
             "No uses .subscribe() en componentes: expón un Observable y usa el async pipe.",
+        },
+      ],
+    },
+  },
+  // Fronteras entre features, shared y core
+  {
+    files: [`${APP}/**/*.ts`],
+    plugins: { boundaries },
+    settings: {
+      "import/resolver": {
+        typescript: { project: "apps/web/tsconfig.app.json" },
+      },
+      "boundaries/elements": [
+        {
+          type: "feature",
+          pattern: `${APP}/features/*`,
+          capture: ["featureName"],
+        },
+        { type: "shared", pattern: `${APP}/shared` },
+        { type: "core", pattern: `${APP}/core` },
+      ],
+    },
+    rules: {
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "disallow",
+          policies: [
+            // Una feature puede usar shared y core
+            {
+              from: { element: { type: "feature" } },
+              allow: { to: { element: { types: ["shared", "core"] } } },
+            },
+            // ...y su propio código, pero no el de otra feature
+            {
+              from: { element: { type: "feature" } },
+              allow: {
+                to: {
+                  element: {
+                    type: "feature",
+                    captured: {
+                      featureName: "{{ from.element.captured.featureName }}",
+                    },
+                  },
+                },
+              },
+            },
+            {
+              from: { element: { type: "shared" } },
+              allow: { to: { element: { type: "shared" } } },
+            },
+            {
+              from: { element: { type: "core" } },
+              allow: { to: { element: { types: ["core", "shared"] } } },
+            },
+          ],
         },
       ],
     },
