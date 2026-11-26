@@ -1,7 +1,7 @@
 // Plantillas del generador. Cada función devuelve el contenido de un archivo.
 // Prettier formatea el resultado al escribirlo, así que aquí importa el contenido, no el formato.
 
-import { constant, pascal, title } from "./names.mjs";
+import { constant, pascal, title } from "./gen/names.mjs";
 
 export const ROUTES_MARKER = "// @gen:routes";
 

@@ -14,7 +14,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as prettier from "prettier";
 import { assertKebab } from "./names.mjs";
-import * as t from "./templates.mjs";
+import * as t from "../templates.mjs";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const APP_REL = "apps/web/src/app";
