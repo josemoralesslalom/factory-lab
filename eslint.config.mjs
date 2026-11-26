@@ -2,8 +2,50 @@ import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { fileURLToPath } from "node:url";
 import angular from "angular-eslint";
 import tseslint from "typescript-eslint";
+import boundaries from "eslint-plugin-boundaries";
 
 const gitignore = fileURLToPath(new URL(".gitignore", import.meta.url));
+
+const APP = "apps/web/src/app";
+
+// Prohibido en toda la app
+const appRestrictedImports = [
+  {
+    name: "@angular/core",
+    importNames: ["signal", "computed", "effect", "linkedSignal", "resource"],
+    message:
+      "El estado de la app se maneja con RxJS (BehaviorSubject y async pipe). Los signals solo se usan donde el framework los entrega: input(), model() y queries.",
+  },
+  {
+    name: "@angular/core",
+    importNames: ["Injectable"],
+    message: "Usa @Service() de @angular/core.",
+  },
+  {
+    name: "@angular/core/rxjs-interop",
+    importNames: ["toSignal", "rxResource"],
+    message:
+      "No conviertas streams en signals: expón el Observable y usa el async pipe. Para llevar un input() a RxJS usa toObservable().",
+  },
+  {
+    name: "@angular/common",
+    importNames: ["CommonModule"],
+    message: "Importa solo los pipes y directivas que use la plantilla.",
+  },
+  {
+    name: "@angular/common/http",
+    importNames: ["httpResource"],
+    message:
+      "Carga datos con un servicio que exponga un Observable y toViewState().",
+  },
+];
+
+// Prohibido fuera de services/ y core/
+const httpOutsideServices = {
+  name: "@angular/common/http",
+  importNames: ["HttpClient"],
+  message: "Solo los servicios (services/) y core/ hacen peticiones HTTP.",
+};
 
 export default defineConfig([
   includeIgnoreFile(gitignore),
@@ -19,11 +61,93 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    linterOptions: { noInlineConfig: true },
     rules: {
       "@typescript-eslint/switch-exhaustiveness-check": "error",
+      "no-restricted-imports": [
+        "error",
+        { paths: [...appRestrictedImports, httpOutsideServices] },
+      ],
     },
   },
 
+  {
+    files: [`${APP}/**/services/**/*.ts`, `${APP}/core/**/*.ts`],
+    rules: {
+      "no-restricted-imports": ["error", { paths: appRestrictedImports }],
+    },
+  },
+  // Componentes y pages: nunca .subscribe()
+  {
+    files: [`${APP}/**/{pages,components}/**/*.ts`, `${APP}/app.ts`],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='subscribe']",
+          message:
+            "No uses .subscribe() en componentes: expón un Observable y usa el async pipe.",
+        },
+      ],
+    },
+  },
+  // Fronteras entre features, shared y core
+  {
+    files: [`${APP}/**/*.ts`],
+    plugins: { boundaries },
+    settings: {
+      "import/resolver": {
+        typescript: { project: "apps/web/tsconfig.app.json" },
+      },
+      "boundaries/elements": [
+        {
+          type: "feature",
+          pattern: `${APP}/features/*`,
+          capture: ["featureName"],
+        },
+        { type: "shared", pattern: `${APP}/shared` },
+        { type: "core", pattern: `${APP}/core` },
+      ],
+    },
+    rules: {
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "disallow",
+          policies: [
+            // Una feature puede usar shared y core
+            {
+              from: { element: { type: "feature" } },
+              allow: { to: { element: { types: ["shared", "core"] } } },
+            },
+            // ...y su propio código, pero no el de otra feature
+            {
+              from: { element: { type: "feature" } },
+              allow: {
+                to: {
+                  element: {
+                    type: "feature",
+                    captured: {
+                      featureName: "{{ from.element.captured.featureName }}",
+                    },
+                  },
+                },
+              },
+            },
+            {
+              from: { element: { type: "shared" } },
+              allow: { to: { element: { type: "shared" } } },
+            },
+            {
+              from: { element: { type: "core" } },
+              allow: { to: { element: { types: ["core", "shared"] } } },
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Angular: TypeScript
   {
     files: ["apps/web/**/*.ts"],
@@ -41,6 +165,10 @@ export default defineConfig([
       "@angular-eslint/directive-selector": [
         "error",
         { type: "attribute", prefix: "app", style: "camelCase" },
+      ],
+      "@angular-eslint/component-max-inline-declarations": [
+        "error",
+        { template: 0, styles: 0 },
       ],
     },
   },
