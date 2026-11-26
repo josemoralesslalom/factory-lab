@@ -14,7 +14,7 @@ OK=0
 FALLAS=0
 
 restaurar() {
-  git checkout -q -- apps/ 2>/dev/null
+  git checkout -q -- apps/ scripts/gen/ 2>/dev/null
   git clean -fdq apps/web/src 2>/dev/null
 }
 trap restaurar EXIT
@@ -143,6 +143,11 @@ mkdir -p $F/components/c
 printf 'import { AsyncPipe } from "@angular/common";\nimport { Component, input, output } from "@angular/core";\nimport { toObservable } from "@angular/core/rxjs-interop";\nimport { map } from "rxjs";\n\n@Component({ imports: [AsyncPipe], selector: "app-c", templateUrl: "./c.html" })\nexport class C {\n  readonly id = input.required<string>();\n  readonly closed = output();\n  protected readonly label$ = toObservable(this.id).pipe(map((id) => `#${id}`));\n}\n' > $F/components/c/c.ts
 printf '<p>{{ label$ | async }}</p>\n' > $F/components/c/c.html
 permitido "input(), output() y toObservable() en un componente" "pnpm exec eslint --max-warnings 0 $F/components/c/c.ts $F/components/c/c.html"
+
+sed -i.bak 's/No hay elementos/No hay registros/' scripts/gen/templates.mjs && rm -f scripts/gen/templates.mjs.bak
+caso "plantilla del generador cambia sin actualizar golden" "pnpm test:gen" "el contenido de .* cambió"
+
+permitido "una feature generada pasa verify" "pnpm -s gen feature zz-gen && pnpm -s gen model zz-gen item && pnpm -s gen service zz-gen items-api --model item && pnpm -s gen page zz-gen items-list --service items-api && pnpm -s gen component zz-gen item-row && pnpm verify"
 
 rm -f "$LOG"
 echo

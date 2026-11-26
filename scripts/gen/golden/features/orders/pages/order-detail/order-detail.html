@@ -1,0 +1,22 @@
+<h1>Order detail</h1>
+
+@if (state$ | async; as state) {
+  @switch (state.status) {
+    @case ("loading") {
+      <p>Cargando…</p>
+    }
+    @case ("error") {
+      <p role="alert">No se pudo cargar la información.</p>
+      <button type="button" (click)="reload()">Reintentar</button>
+    }
+    @case ("ready") {
+      <ul>
+        @for (item of state.data; track item.id) {
+          <li>{{ item.id }}</li>
+        } @empty {
+          <li>No hay elementos.</li>
+        }
+      </ul>
+    }
+  }
+}

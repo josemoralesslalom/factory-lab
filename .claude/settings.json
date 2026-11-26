@@ -13,6 +13,8 @@
       "PowerShell(pnpm test)",
       "PowerShell(pnpm format)",
       "Bash(pnpm build)",
+      "Bash(pnpm gen *)",
+      "PowerShell(pnpm gen *)",
       "PowerShell(pnpm build)"
     ],
     "deny": [

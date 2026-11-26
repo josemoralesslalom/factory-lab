@@ -6,7 +6,7 @@ pre-commit:
       stage_fixed: true
     - name: lint
       glob: "**/*.{ts,tsx,js,mjs,mts,html}"
-      run: pnpm exec eslint --max-warnings 0 {staged_files}
+      run: pnpm exec eslint --max-warnings 0 --no-warn-ignored {staged_files}
 
 pre-push:
   jobs:
