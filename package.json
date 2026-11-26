@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "verify": "pnpm deps:check && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "deps:check": "pnpm peers check",
-    "build": "pnpm --filter web build"
+    "build": "pnpm --filter web build",
+    "gen": "node scripts/gen/gen.mjs"
   },
   "keywords": [],
   "author": "",
