@@ -75,6 +75,75 @@ caso "page sin ningún test" "pnpm --filter web test:ci" "components\\}/\\*\\*\"
 node -e 'let s="";for(let i=0;i<160;i++)s+=`.c-${i} {\n  color: red;\n  margin: ${i}px;\n}\n`;require("fs").writeFileSync("apps/web/src/app/app.scss",s)'
 caso "budget de estilos por componente" "pnpm build" "Budget 4.00 kB was not met"
 
+# --- Estándar del frontend (paso 2.3) ---
+F=$W/features/zz-a
+
+# permitido <nombre> <comando>: el código válido debe pasar el gate
+permitido() {
+  local nombre="$1" cmd="$2"
+  if bash -c "$cmd" > "$LOG" 2>&1; then
+    echo "OK     $nombre"
+    OK=$((OK + 1))
+  else
+    echo "FALLA  $nombre: el gate rechazó código válido"
+    FALLAS=$((FALLAS + 1))
+  fi
+  restaurar
+}
+
+mkdir -p $F/pages/p
+printf 'import { signal } from "@angular/core";\n\nexport const contador = signal(0);\n' > $F/pages/p/estado.ts
+caso "estado con signals" "pnpm exec eslint --max-warnings 0 $F/pages/p/estado.ts" "'signal' import"
+
+mkdir -p $F/services
+printf 'import { Injectable } from "@angular/core";\n\n@Injectable({ providedIn: "root" })\nexport class ConInjectable {}\n' > $F/services/con-injectable.ts
+caso "@Injectable en lugar de @Service" "pnpm exec eslint --max-warnings 0 $F/services/con-injectable.ts" "'Injectable' import"
+
+mkdir -p $F/pages/p
+printf 'import { of } from "rxjs";\n\nexport function cargar(): void {\n  of(1).subscribe();\n}\n' > $F/pages/p/con-subscribe.ts
+caso ".subscribe() en una page" "pnpm exec eslint --max-warnings 0 $F/pages/p/con-subscribe.ts" "No uses .subscribe"
+
+mkdir -p $F/pages/p
+printf 'import { HttpClient } from "@angular/common/http";\n\nexport const cliente = HttpClient;\n' > $F/pages/p/con-http.ts
+caso "HttpClient fuera de services" "pnpm exec eslint --max-warnings 0 $F/pages/p/con-http.ts" "'HttpClient' import"
+
+mkdir -p $F/pages/p $W/features/zz-b/services
+printf 'export const pago = 1;\n' > $W/features/zz-b/services/pago.ts
+printf 'import { pago } from "../../../zz-b/services/pago";\n\nexport const total = pago;\n' > $F/pages/p/entre-features.ts
+caso "importación entre features" "pnpm exec eslint --max-warnings 0 $F/pages/p/entre-features.ts" "boundaries/dependencies"
+
+mkdir -p $W/shared/zz
+mkdir -p $F/models
+printf 'export const modelo = 1;\n' > $F/models/modelo.ts
+printf 'import { modelo } from "../../features/zz-a/models/modelo";\n\nexport const y = modelo;\n' > $W/shared/zz/desde-shared.ts
+caso "shared importa de una feature" "pnpm exec eslint --max-warnings 0 $W/shared/zz/desde-shared.ts" "boundaries/dependencies"
+
+mkdir -p $F/pages/p
+printf 'import { Component } from "@angular/core";\n\n@Component({ selector: "app-inline", template: "<p>x</p>" })\nexport class Inline {}\n' > $F/pages/p/inline.ts
+caso "plantilla inline" "pnpm exec eslint --max-warnings 0 $F/pages/p/inline.ts" "component-max-inline-declarations"
+
+mkdir -p $F/pages/p
+printf '<p *ngIf="true">x</p>\n' > $F/pages/p/viejo.html
+caso "directiva estructural vieja" "pnpm exec eslint --max-warnings 0 $F/pages/p/viejo.html" "prefer-control-flow"
+
+mkdir -p $W/shared/zz
+printf '// eslint-disable-next-line @typescript-eslint/no-explicit-any\nexport const valor: any = 1;\n' > $W/shared/zz/desactivada.ts
+caso "comentario eslint-disable" "pnpm exec eslint --max-warnings 0 $W/shared/zz/desactivada.ts" "noInlineConfig"
+
+mkdir -p $F/services
+printf 'import { HttpClient } from "@angular/common/http";\nimport { Service, inject } from "@angular/core";\n\n@Service()\nexport class ConHttp {\n  protected readonly http = inject(HttpClient);\n}\n' > $F/services/con-http.ts
+permitido "HttpClient en un servicio" "pnpm exec eslint --max-warnings 0 $F/services/con-http.ts"
+
+mkdir -p $F/pages/p $W/shared/zz
+printf 'export const util = 1;\n' > $W/shared/zz/util.ts
+printf 'import { util } from "../../../../shared/zz/util";\n\nexport const z = util;\n' > $F/pages/p/usa-shared.ts
+permitido "una feature importa de shared" "pnpm exec eslint --max-warnings 0 $F/pages/p/usa-shared.ts"
+
+mkdir -p $F/components/c
+printf 'import { AsyncPipe } from "@angular/common";\nimport { Component, input, output } from "@angular/core";\nimport { toObservable } from "@angular/core/rxjs-interop";\nimport { map } from "rxjs";\n\n@Component({ imports: [AsyncPipe], selector: "app-c", templateUrl: "./c.html" })\nexport class C {\n  readonly id = input.required<string>();\n  readonly closed = output();\n  protected readonly label$ = toObservable(this.id).pipe(map((id) => `#${id}`));\n}\n' > $F/components/c/c.ts
+printf '<p>{{ label$ | async }}</p>\n' > $F/components/c/c.html
+permitido "input(), output() y toObservable() en un componente" "pnpm exec eslint --max-warnings 0 $F/components/c/c.ts $F/components/c/c.html"
+
 rm -f "$LOG"
 echo
 echo "$OK correctos, $FALLAS con problemas"
