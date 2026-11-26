@@ -75,7 +75,21 @@ export default defineConfig([
       "no-restricted-imports": ["error", { paths: appRestrictedImports }],
     },
   },
-
+  // Componentes y pages: nunca .subscribe()
+  {
+    files: [`${APP}/**/{pages,components}/**/*.ts`, `${APP}/app.ts`],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='subscribe']",
+          message:
+            "No uses .subscribe() en componentes: expón un Observable y usa el async pipe.",
+        },
+      ],
+    },
+  },
   // Angular: TypeScript
   {
     files: ["apps/web/**/*.ts"],
@@ -93,6 +107,10 @@ export default defineConfig([
       "@angular-eslint/directive-selector": [
         "error",
         { type: "attribute", prefix: "app", style: "camelCase" },
+      ],
+      "@angular-eslint/component-max-inline-declarations": [
+        "error",
+        { template: 0, styles: 0 },
       ],
     },
   },
