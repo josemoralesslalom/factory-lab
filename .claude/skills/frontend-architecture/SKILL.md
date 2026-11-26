@@ -95,10 +95,9 @@ export const ORDERS_ROUTES: Routes = [
     loadComponent: () =>
       import("./pages/orders-list/orders-list").then((m) => m.OrdersList),
   },
+  // @gen:routes
 ];
 ```
-
-// @gen:routes
 
 `pnpm gen page` registra la ruta. No la escribas a mano.
 
