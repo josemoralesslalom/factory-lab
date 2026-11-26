@@ -83,7 +83,7 @@ Toda page nueva se registra en las rutas de su feature.
 
 ## Estado y datos: RxJS
 
-Todo el estado se maneja con RxJS y se muestra con el `async` pipe. **No se usan signals** (`signal`, `computed`, `effect`, `toSignal`, `rxResource`, `input()`, `output()`, `model()`).
+Todo el estado de la app y los datos se manejan con RxJS y se muestran con el `async` pipe. Los signals solo se usan donde el framework los entrega en la frontera del componente: `input()`, `model()` y las queries (`viewChild()`, `contentChild()`). No se usan `signal`, `computed`, `effect`, `linkedSignal`, `resource`, `toSignal`, `rxResource` ni `httpResource`.
 
 - **Los servicios exponen Observables** para todo lo asíncrono, aunque hoy los datos sean fijos (`of(...)`). Así el componente no cambia cuando lleguen de una API.
 - **Los componentes exponen streams** (con sufijo `$`) y la plantilla los lee con `async`.
@@ -171,7 +171,18 @@ export class OrdersApi {
 
 - La plantilla siempre va en un archivo `.html` separado. El `.scss` solo se crea si el componente tiene estilos.
 - Dependencias con `inject()`, nunca por constructor.
-- Entradas y salidas con `@Input()` y `@Output()` (con `EventEmitter`). No usar `input()`, `output()` ni `model()`, que son signals.
+- Entradas con `input()` / `input.required()`, salidas con `output()`, enlace bidireccional con `model()`. No usar `@Input()` ni `@Output()`.
+- Cuando un input alimenta un stream, se pasa a RxJS con `toObservable()`:
+
+```ts
+readonly orderId = input.required<string>();
+readonly closed = output();
+
+protected readonly customer$ = toObservable(this.orderId).pipe(
+  switchMap((id) => this.api.getCustomer(id)),
+);
+```
+
 - Control flow nativo: `@if`, `@for` (siempre con `track`), `@switch`. Nada de `*ngIf` ni `*ngFor`.
 - No importar `CommonModule`. Importar solo lo que use la plantilla (`AsyncPipe`, `CurrencyPipe`, etc.).
 - Elementos HTML semánticos (`main`, `nav`, `header`, `footer`, `section`, `button`, `table`). Los mensajes de error llevan `role="alert"`.
@@ -251,3 +262,14 @@ describe("OrdersList", () => {
 - En las pages, reemplazar los servicios con dobles vía `providers`. Los servicios se prueban por separado.
 - Las pages que cargan datos prueban los cuatro estados: datos, vacío, cargando (`NEVER`) y error con reintento.
 - Interactuar como un usuario: buscar botones por su texto, no por posición.
+- Los inputs se fijan en los tests con `fixture.componentRef.setInput("nombre", valor)`.
+
+## Lo que verifica el lint
+
+Estas reglas las aplica `pnpm verify`. Si el lint falla por una de ellas, se corrige el código; nunca se desactiva la regla (los comentarios `eslint-disable` no tienen efecto en este repo).
+
+- Signals de estado, `@Injectable`, `toSignal`, `rxResource`, `httpResource` y `CommonModule`: imports prohibidos.
+- `HttpClient`: solo en `services/` y `core/`.
+- `.subscribe()`: prohibido en `pages/`, `components/` y el shell.
+- Plantillas y estilos inline: prohibidos.
+- Fronteras: una feature no importa de otra; `shared/` y `core/` no importan de `features/`.
