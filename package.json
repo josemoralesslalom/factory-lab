@@ -10,10 +10,11 @@
     "test": "vitest run --coverage && pnpm --filter web test:ci",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm deps:check && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "verify": "pnpm deps:check && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test:gen && pnpm test && pnpm build",
     "deps:check": "pnpm peers check",
     "build": "pnpm --filter web build",
-    "gen": "node scripts/gen/gen.mjs"
+    "gen": "node scripts/gen/gen.mjs",
+    "test:gen": "node --test scripts/gen/gen.test.mjs"
   },
   "keywords": [],
   "author": "",

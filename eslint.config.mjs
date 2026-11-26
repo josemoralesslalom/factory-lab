@@ -49,7 +49,7 @@ const httpOutsideServices = {
 
 export default defineConfig([
   includeIgnoreFile(gitignore),
-  { ignores: ["eslint.config.mjs"] },
+  { ignores: ["eslint.config.mjs", "scripts/gen/golden/**"] },
 
   // Todo el TypeScript del repo
   {
